@@ -22,12 +22,14 @@ boolean doaes(uint8_t *in, uint8_t *out, int decrypt) {
 
   if (!atecc.checkCount() || !atecc.checkCrc())
     return false;
-  memcpy(out, atecc.inputBuffer + 3, 16);
+  memcpy(out, atecc.inputBuffer + 1, 16);
+#if 0
   for (int i = 0; i < 24; i++) {
     Serial.print(atecc.inputBuffer[i], HEX);
     Serial.print(" ");
   }
   Serial.println();
+#endif
 }
 
 void setup() {
@@ -62,10 +64,15 @@ void setup() {
   for (int i = 0; i < sizeof(tmpkey); i++) tmpkey[i] = 100 + i;
   atecc.loadTempKey(tmpkey);
   for (int i = 0; i < sizeof(clear); i++) clear[i] = i;
-  doaes(clear, cipher, 0);
+  doaes(clear, cipher, 0);    // encrypt
   doaes(cipher, aesbuf, 1);
   Serial.print("aesbuf[3] ");
   Serial.println(aesbuf[3]);
+  us = micros();
+  doaes(clear, cipher, 0);    // encrypt
+  us = micros() - us;
+  sprintf((char *)buff, "AES-128 %d us %f mbs\n", us, 8.*16 / us);
+  Serial.print((char *)buff);
 }
 
 void loop() {
